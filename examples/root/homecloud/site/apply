@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+
+echo "apply script"
+echo "target=${TARGET:-}"
+echo "args=$*"
+echo "rr_request_id=${RR_REQUEST_ID:-}"

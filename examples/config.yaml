@@ -1,0 +1,46 @@
+version: v1
+root_path: ./examples/root
+
+runtime:
+  inject_runtime_env: true
+
+audit:
+  mode: stderr
+  include_argv: true
+
+callers:
+  - id: github-actions-homecloud
+    transport: ssh
+    allowed_targets:
+      - server
+      - claw
+
+scripts:
+  - path: homecloud/site/validate
+    allowed_callers:
+      - github-actions-homecloud
+    allowed_targets:
+      - server
+      - claw
+    allow_argv: true
+    allow_stdin: true
+    allowed_env:
+      - TARGET
+      - WORKFLOW_RUN_ID
+      - ACTOR
+    required_env:
+      - TARGET
+
+  - path: homecloud/site/apply
+    allowed_callers:
+      - github-actions-homecloud
+    allowed_targets:
+      - server
+    allow_argv: true
+    allow_stdin: false
+    allowed_env:
+      - TARGET
+      - WORKFLOW_RUN_ID
+      - ACTOR
+    required_env:
+      - TARGET

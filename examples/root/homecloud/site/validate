@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+echo "validate script"
+echo "target=${TARGET:-}"
+echo "args=$*"
+if [ -t 0 ]; then
+  echo "stdin=none"
+else
+  echo "stdin=$(cat)"
+fi
