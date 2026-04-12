@@ -19,11 +19,20 @@ Design documents live under `docs/`.
 
 ## Example usage
 
+The sample config is a template. Before using it, replace the `root_path` value with an absolute path to `examples/root` on your machine.
+
+For example:
+
+```bash
+ROOT=$(pwd)/examples/root
+sed "s#ROOT_PATH_PLACEHOLDER#$ROOT#" examples/config.yaml > /tmp/restricted-runner.config.yaml
+```
+
 Validate only:
 
 ```bash
 cat <<'EOF' | restricted-runner validate \
-  --config ./examples/config.yaml \
+  --config /tmp/restricted-runner.config.yaml \
   --caller github-actions-homecloud \
   --target server
 {
@@ -44,7 +53,7 @@ Preflight dispatch:
 
 ```bash
 cat <<'EOF' | restricted-runner dispatch --dry-run \
-  --config ./examples/config.yaml \
+  --config /tmp/restricted-runner.config.yaml \
   --caller github-actions-homecloud \
   --target server
 {

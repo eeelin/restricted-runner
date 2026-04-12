@@ -39,8 +39,25 @@ func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) int
 	}
 }
 
+type commonInputs struct {
+	Request    protocol.Request
+	Config     config.Config
+	CallerID   string
+	Target     string
+	Match      policy.MatchResult
+	RequestRaw []byte
+}
+
 func runValidate(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) int {
-	request, cfg, callerID, target, match, ok := prepareRequest(args, stdin, stdout, stderr, "validate")
+	fs := flag.NewFlagSet("validate", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+
+	callerID := fs.String("caller", "", "caller identity")
+	target := fs.String("target", "", "logical target")
+	configPath := fs.String("config", "", "path to YAML config")
+	payload := fs.String("payload", "", "request payload JSON")
+
+	inputs, ok := prepareCommonInputs(fs, args, stdin, stdout, *callerID, *target, *configPath, *payload)
 	if !ok {
 		return 1
 	}
@@ -48,37 +65,38 @@ func runValidate(args []string, stdin io.Reader, stdout io.Writer, stderr io.Wri
 	writeJSON(stdout, map[string]any{
 		"ok":      true,
 		"stage":   "validated",
-		"request": request,
+		"request": inputs.Request,
 		"config": map[string]any{
-			"root_path": cfg.RootPath,
+			"root_path": inputs.Config.RootPath,
 		},
 		"match": map[string]any{
-			"caller": match.Caller.ID,
-			"target": target,
-			"script": match.Script.Path,
+			"caller": inputs.Match.Caller.ID,
+			"target": inputs.Target,
+			"script": inputs.Match.Script.Path,
 		},
 	})
-	_ = callerID
 	return 0
 }
 
 func runDispatch(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) int {
 	fs := flag.NewFlagSet("dispatch", flag.ContinueOnError)
 	fs.SetOutput(stderr)
-	dryRun := fs.Bool("dry-run", false, "perform preflight only")
-	if err := fs.Parse(args); err != nil {
-		return 2
-	}
 
-	request, cfg, callerID, target, match, ok := prepareRequest(fs.Args(), stdin, stdout, stderr, "dispatch")
+	callerID := fs.String("caller", "", "caller identity")
+	target := fs.String("target", "", "logical target")
+	configPath := fs.String("config", "", "path to YAML config")
+	payload := fs.String("payload", "", "request payload JSON")
+	dryRun := fs.Bool("dry-run", false, "perform preflight only")
+
+	inputs, ok := prepareCommonInputs(fs, args, stdin, stdout, *callerID, *target, *configPath, *payload)
 	if !ok {
 		return 1
 	}
 
 	resolved, err := executor.Preflight(executor.ResolveInput{
-		Config:  cfg,
-		Match:   match,
-		Request: request,
+		Config:  inputs.Config,
+		Match:   inputs.Match,
+		Request: inputs.Request,
 	})
 	if err != nil {
 		writeJSON(stdout, map[string]any{"ok": false, "stage": "preflight", "error": err.Error()})
@@ -90,24 +108,23 @@ func runDispatch(args []string, stdin io.Reader, stdout io.Writer, stderr io.Wri
 			"ok":            true,
 			"stage":         "dispatch_preflight",
 			"dry_run":       true,
-			"request":       request,
+			"request":       inputs.Request,
 			"resolved_path": resolved.ResolvedPath,
 			"match": map[string]any{
-				"caller": match.Caller.ID,
-				"target": target,
-				"script": match.Script.Path,
+				"caller": inputs.Match.Caller.ID,
+				"target": inputs.Target,
+				"script": inputs.Match.Script.Path,
 			},
 		})
-		_ = callerID
 		return 0
 	}
 
 	result, err := executor.Execute(executor.ExecuteInput{
-		Config:   cfg,
-		Match:    match,
-		Request:  request,
-		CallerID: callerID,
-		Target:   target,
+		Config:   inputs.Config,
+		Match:    inputs.Match,
+		Request:  inputs.Request,
+		CallerID: inputs.CallerID,
+		Target:   inputs.Target,
 	})
 	if err != nil {
 		writeJSON(stdout, map[string]any{"ok": false, "stage": "execute", "error": err.Error()})
@@ -119,9 +136,9 @@ func runDispatch(args []string, stdin io.Reader, stdout io.Writer, stderr io.Wri
 		"dry_run": false,
 		"result":  result,
 		"match": map[string]any{
-			"caller": match.Caller.ID,
-			"target": target,
-			"script": match.Script.Path,
+			"caller": inputs.Match.Caller.ID,
+			"target": inputs.Target,
+			"script": inputs.Match.Script.Path,
 		},
 	})
 	if result.OK {
@@ -130,25 +147,22 @@ func runDispatch(args []string, stdin io.Reader, stdout io.Writer, stderr io.Wri
 	return 1
 }
 
-func prepareRequest(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, name string) (protocol.Request, config.Config, string, string, policy.MatchResult, bool) {
-	fs := flag.NewFlagSet(name, flag.ContinueOnError)
-	fs.SetOutput(stderr)
-
-	callerID := fs.String("caller", "", "caller identity")
-	target := fs.String("target", "", "logical target")
-	configPath := fs.String("config", "", "path to YAML config")
-	payload := fs.String("payload", "", "request payload JSON")
-
+func prepareCommonInputs(fs *flag.FlagSet, args []string, stdin io.Reader, stdout io.Writer, callerID, target, configPath, payload string) (commonInputs, bool) {
 	if err := fs.Parse(args); err != nil {
-		return protocol.Request{}, config.Config{}, "", "", policy.MatchResult{}, false
+		return commonInputs{}, false
 	}
 
-	requestBytes := []byte(*payload)
+	callerID = fs.Lookup("caller").Value.String()
+	target = fs.Lookup("target").Value.String()
+	configPath = fs.Lookup("config").Value.String()
+	payload = fs.Lookup("payload").Value.String()
+
+	requestBytes := []byte(payload)
 	if len(requestBytes) == 0 {
 		data, err := io.ReadAll(stdin)
 		if err != nil {
-			fmt.Fprintf(stderr, "failed to read stdin: %v\n", err)
-			return protocol.Request{}, config.Config{}, "", "", policy.MatchResult{}, false
+			fmt.Fprintf(os.Stderr, "failed to read stdin: %v\n", err)
+			return commonInputs{}, false
 		}
 		requestBytes = data
 	}
@@ -156,43 +170,50 @@ func prepareRequest(args []string, stdin io.Reader, stdout io.Writer, stderr io.
 	var req protocol.Request
 	if err := json.Unmarshal(requestBytes, &req); err != nil {
 		writeJSON(stdout, map[string]any{"ok": false, "stage": "decode", "error": err.Error()})
-		return protocol.Request{}, config.Config{}, "", "", policy.MatchResult{}, false
+		return commonInputs{}, false
 	}
 	if err := req.Validate(); err != nil {
 		writeJSON(stdout, map[string]any{"ok": false, "stage": "request_validate", "error": err.Error()})
-		return protocol.Request{}, config.Config{}, "", "", policy.MatchResult{}, false
+		return commonInputs{}, false
 	}
-	if *callerID == "" {
+	if callerID == "" {
 		writeJSON(stdout, map[string]any{"ok": false, "stage": "input", "error": "missing caller"})
-		return protocol.Request{}, config.Config{}, "", "", policy.MatchResult{}, false
+		return commonInputs{}, false
 	}
-	if *target == "" {
+	if target == "" {
 		writeJSON(stdout, map[string]any{"ok": false, "stage": "input", "error": "missing target"})
-		return protocol.Request{}, config.Config{}, "", "", policy.MatchResult{}, false
+		return commonInputs{}, false
 	}
-	if *configPath == "" {
+	if configPath == "" {
 		writeJSON(stdout, map[string]any{"ok": false, "stage": "input", "error": "missing config"})
-		return protocol.Request{}, config.Config{}, "", "", policy.MatchResult{}, false
+		return commonInputs{}, false
 	}
 
-	cfg, err := config.LoadFile(*configPath)
+	cfg, err := config.LoadFile(configPath)
 	if err != nil {
 		writeJSON(stdout, map[string]any{"ok": false, "stage": "config_load", "error": err.Error()})
-		return protocol.Request{}, config.Config{}, "", "", policy.MatchResult{}, false
+		return commonInputs{}, false
 	}
 
 	match, err := policy.Match(policy.MatchInput{
 		Config:   cfg,
 		Request:  req,
-		CallerID: *callerID,
-		Target:   *target,
+		CallerID: callerID,
+		Target:   target,
 	})
 	if err != nil {
 		writeJSON(stdout, map[string]any{"ok": false, "stage": "policy_match", "error": err.Error()})
-		return protocol.Request{}, config.Config{}, "", "", policy.MatchResult{}, false
+		return commonInputs{}, false
 	}
 
-	return req, cfg, *callerID, *target, match, true
+	return commonInputs{
+		Request:    req,
+		Config:     cfg,
+		CallerID:   callerID,
+		Target:     target,
+		Match:      match,
+		RequestRaw: requestBytes,
+	}, true
 }
 
 func writeJSON(w io.Writer, value any) {

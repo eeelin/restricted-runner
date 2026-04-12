@@ -1,5 +1,5 @@
 version: v1
-root_path: ./examples/root
+root_path: ROOT_PATH_PLACEHOLDER
 
 runtime:
   inject_runtime_env: true

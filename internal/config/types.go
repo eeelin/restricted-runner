@@ -25,43 +25,43 @@ var (
 )
 
 type Config struct {
-	Version  string         `json:"version"`
-	RootPath string         `json:"root_path"`
-	Runtime  RuntimeConfig  `json:"runtime,omitempty"`
-	Audit    AuditConfig    `json:"audit,omitempty"`
-	Callers  []CallerConfig `json:"callers,omitempty"`
-	Scripts  []ScriptConfig `json:"scripts"`
+	Version  string         `json:"version" yaml:"version"`
+	RootPath string         `json:"root_path" yaml:"root_path"`
+	Runtime  RuntimeConfig  `json:"runtime,omitempty" yaml:"runtime,omitempty"`
+	Audit    AuditConfig    `json:"audit,omitempty" yaml:"audit,omitempty"`
+	Callers  []CallerConfig `json:"callers,omitempty" yaml:"callers,omitempty"`
+	Scripts  []ScriptConfig `json:"scripts" yaml:"scripts"`
 }
 
 type RuntimeConfig struct {
-	DefaultTimeout     time.Duration `json:"default_timeout,omitempty"`
-	MaxStdoutBytes     int64         `json:"max_stdout_bytes,omitempty"`
-	MaxStderrBytes     int64         `json:"max_stderr_bytes,omitempty"`
-	AllowStdinByDefault bool         `json:"allow_stdin_by_default,omitempty"`
-	InjectRuntimeEnv   bool          `json:"inject_runtime_env,omitempty"`
+	DefaultTimeout      time.Duration `json:"default_timeout,omitempty" yaml:"default_timeout,omitempty"`
+	MaxStdoutBytes      int64         `json:"max_stdout_bytes,omitempty" yaml:"max_stdout_bytes,omitempty"`
+	MaxStderrBytes      int64         `json:"max_stderr_bytes,omitempty" yaml:"max_stderr_bytes,omitempty"`
+	AllowStdinByDefault bool          `json:"allow_stdin_by_default,omitempty" yaml:"allow_stdin_by_default,omitempty"`
+	InjectRuntimeEnv    bool          `json:"inject_runtime_env,omitempty" yaml:"inject_runtime_env,omitempty"`
 }
 
 type AuditConfig struct {
-	Mode           string `json:"mode,omitempty"`
-	IncludeEnvKeys bool   `json:"include_env_keys,omitempty"`
-	IncludeArgv    bool   `json:"include_argv,omitempty"`
+	Mode           string `json:"mode,omitempty" yaml:"mode,omitempty"`
+	IncludeEnvKeys bool   `json:"include_env_keys,omitempty" yaml:"include_env_keys,omitempty"`
+	IncludeArgv    bool   `json:"include_argv,omitempty" yaml:"include_argv,omitempty"`
 }
 
 type CallerConfig struct {
-	ID             string   `json:"id"`
-	Transport      string   `json:"transport,omitempty"`
-	AllowedTargets []string `json:"allowed_targets,omitempty"`
+	ID             string   `json:"id" yaml:"id"`
+	Transport      string   `json:"transport,omitempty" yaml:"transport,omitempty"`
+	AllowedTargets []string `json:"allowed_targets,omitempty" yaml:"allowed_targets,omitempty"`
 }
 
 type ScriptConfig struct {
-	Path           string        `json:"path"`
-	AllowedCallers []string      `json:"allowed_callers,omitempty"`
-	AllowedTargets []string      `json:"allowed_targets,omitempty"`
-	AllowArgv      bool          `json:"allow_argv,omitempty"`
-	AllowStdin     bool          `json:"allow_stdin,omitempty"`
-	AllowedEnv     []string      `json:"allowed_env,omitempty"`
-	RequiredEnv    []string      `json:"required_env,omitempty"`
-	Timeout        time.Duration `json:"timeout,omitempty"`
+	Path           string        `json:"path" yaml:"path"`
+	AllowedCallers []string      `json:"allowed_callers,omitempty" yaml:"allowed_callers,omitempty"`
+	AllowedTargets []string      `json:"allowed_targets,omitempty" yaml:"allowed_targets,omitempty"`
+	AllowArgv      bool          `json:"allow_argv,omitempty" yaml:"allow_argv,omitempty"`
+	AllowStdin     bool          `json:"allow_stdin,omitempty" yaml:"allow_stdin,omitempty"`
+	AllowedEnv     []string      `json:"allowed_env,omitempty" yaml:"allowed_env,omitempty"`
+	RequiredEnv    []string      `json:"required_env,omitempty" yaml:"required_env,omitempty"`
+	Timeout        time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 }
 
 func (c Config) Validate() error {
