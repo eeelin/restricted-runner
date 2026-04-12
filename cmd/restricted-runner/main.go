@@ -42,6 +42,7 @@ func runValidate(args []string, stdin io.Reader, stdout io.Writer, stderr io.Wri
 
 	callerID := fs.String("caller", "", "caller identity")
 	target := fs.String("target", "", "logical target")
+	configPath := fs.String("config", "", "path to YAML config")
 	payload := fs.String("payload", "", "request payload JSON")
 
 	if err := fs.Parse(args); err != nil {
@@ -76,9 +77,13 @@ func runValidate(args []string, stdin io.Reader, stdout io.Writer, stderr io.Wri
 		return 1
 	}
 
-	cfg := placeholderConfig()
-	if err := cfg.Validate(); err != nil {
-		writeJSON(stdout, map[string]any{"ok": false, "stage": "config_validate", "error": err.Error()})
+	if *configPath == "" {
+		writeJSON(stdout, map[string]any{"ok": false, "stage": "input", "error": "missing config"})
+		return 1
+	}
+	cfg, err := config.LoadFile(*configPath)
+	if err != nil {
+		writeJSON(stdout, map[string]any{"ok": false, "stage": "config_load", "error": err.Error()})
 		return 1
 	}
 
@@ -103,36 +108,6 @@ func runValidate(args []string, stdin io.Reader, stdout io.Writer, stderr io.Wri
 		},
 	})
 	return 0
-}
-
-func placeholderConfig() config.Config {
-	return config.Config{
-		Version:  config.VersionV1,
-		RootPath: "/opt/restricted-runner/root",
-		Callers: []config.CallerConfig{
-			{ID: "github-actions-homecloud", AllowedTargets: []string{"server", "claw"}},
-		},
-		Scripts: []config.ScriptConfig{
-			{
-				Path:           "homecloud/site/validate",
-				AllowedCallers: []string{"github-actions-homecloud"},
-				AllowedTargets: []string{"server", "claw"},
-				AllowArgv:      true,
-				AllowStdin:     true,
-				AllowedEnv:     []string{"TARGET", "WORKFLOW_RUN_ID", "ACTOR"},
-				RequiredEnv:    []string{"TARGET"},
-			},
-			{
-				Path:           "homecloud/site/apply",
-				AllowedCallers: []string{"github-actions-homecloud"},
-				AllowedTargets: []string{"server"},
-				AllowArgv:      true,
-				AllowStdin:     false,
-				AllowedEnv:     []string{"TARGET", "WORKFLOW_RUN_ID", "ACTOR"},
-				RequiredEnv:    []string{"TARGET"},
-			},
-		},
-	}
 }
 
 func writeJSON(w io.Writer, value any) {
