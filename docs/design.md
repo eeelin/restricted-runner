@@ -90,13 +90,15 @@ All requests are denied by default. Only explicitly allowed operations may run.
 ### 6.2 Inputs must be structured
 
 The protocol must not accept concatenated shell strings as request input.
-Instead, requests should be expressed through structured fields such as:
+Instead, requests should be expressed through a structured CGI-like model, with fields such as:
 
-- `operation`
-- `target`
-- `resource`
-- `revision`
+- `script`
+- `argv`
+- `env`
+- `stdin`
 - `metadata`
+
+The detailed request and execution protocol is defined in `docs/protocol.md`.
 
 ### 6.3 Policy and execution are separate concerns
 
@@ -151,37 +153,20 @@ A suggested package structure is:
 - `internal/config/`
   - runtime and policy configuration loading
 
-## 8. Request Model
+## 8. Protocol Model
 
-The first request model should contain at least:
+The protocol is CGI-like and root-path-based.
 
-```json
-{
-  "operation": "resource.apply",
-  "target": "homecloud-server",
-  "resource": "sites/homes/ruyi/hass",
-  "revision": "abcdef123456",
-  "metadata": {
-    "request_id": "...",
-    "workflow_run_id": "...",
-    "actor": "..."
-  }
-}
-```
+At a high level:
 
-### Field meanings
+- the target host exposes a configured execution root path
+- callers select an executable by relative `script` path under that root
+- arguments are passed as structured `argv`
+- environment variables are passed through a filtered `env` map
+- optional request input is passed through `stdin`
+- execution result is returned as structured JSON
 
-- `operation`
-  - the requested action type
-  - for example `resource.validate`, `resource.apply`, or `repo.checkout`
-- `target`
-  - the target host or logical execution target
-- `resource`
-  - the controlled resource identifier being acted on
-- `revision`
-  - a commit, version, or other verifiable reference
-- `metadata`
-  - audit and correlation fields that do not directly grant permission
+The detailed protocol model, request shape, path resolution rules, and result schema are defined in `docs/protocol.md`.
 
 ## 9. Policy Model
 
@@ -189,35 +174,37 @@ The first policy model should use **static configuration with default deny**.
 
 Examples of policy concerns include:
 
-- which `operation` values are allowed
-- which `resource` values are allowed for a given `target`
-- which actions are allowed for a given resource class
-- which operations require a `revision`
+- which relative `script` paths are allowed
+- which callers or targets may invoke those scripts
+- which argv patterns are allowed
+- which env keys are allowed
+- whether stdin is allowed for a given script
 
 Policy configuration must not allow arbitrary shell templates.
 Its job should be to:
 
 - allow or reject requests
-- select a controlled handler
-- provide limited execution mapping data
+- select a controlled executable path under the configured root
+- provide limited execution constraints
 
 ## 10. Execution Model
 
-The first version of `restricted-runner` should only support **explicitly registered handlers**, for example:
+The first version of `restricted-runner` should execute only files located under the configured root path.
 
-- `repo.checkout`
-- `resource.validate`
-- `resource.apply`
-- `resource.status`
-- `resource.logs`
+A request selects a relative script path, and the runtime resolves:
 
-Those handlers may call:
+```text
+<root_path>/<script>
+```
 
-- fixed binaries
-- fixed script paths
-- fixed subcommands
+Execution must:
 
-But they must not directly assemble user input into shell execution.
+- reject absolute paths
+- reject path traversal
+- reject scripts outside the configured root
+- pass argv directly without shell expansion
+- filter env through policy
+- preserve stdin, stdout, stderr, and exit code as first-class execution streams
 
 ## 11. CLI Shape
 
