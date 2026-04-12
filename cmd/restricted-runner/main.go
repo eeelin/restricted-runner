@@ -85,20 +85,49 @@ func runDispatch(args []string, stdin io.Reader, stdout io.Writer, stderr io.Wri
 		return 1
 	}
 
+	if *dryRun {
+		writeJSON(stdout, map[string]any{
+			"ok":            true,
+			"stage":         "dispatch_preflight",
+			"dry_run":       true,
+			"request":       request,
+			"resolved_path": resolved.ResolvedPath,
+			"match": map[string]any{
+				"caller": match.Caller.ID,
+				"target": target,
+				"script": match.Script.Path,
+			},
+		})
+		_ = callerID
+		return 0
+	}
+
+	result, err := executor.Execute(executor.ExecuteInput{
+		Config:   cfg,
+		Match:    match,
+		Request:  request,
+		CallerID: callerID,
+		Target:   target,
+	})
+	if err != nil {
+		writeJSON(stdout, map[string]any{"ok": false, "stage": "execute", "error": err.Error()})
+		return 1
+	}
 	writeJSON(stdout, map[string]any{
-		"ok":            true,
-		"stage":         "dispatch_preflight",
-		"dry_run":       *dryRun,
-		"request":       request,
-		"resolved_path": resolved.ResolvedPath,
+		"ok":      result.OK,
+		"stage":   "executed",
+		"dry_run": false,
+		"result":  result,
 		"match": map[string]any{
 			"caller": match.Caller.ID,
 			"target": target,
 			"script": match.Script.Path,
 		},
 	})
-	_ = callerID
-	return 0
+	if result.OK {
+		return 0
+	}
+	return 1
 }
 
 func prepareRequest(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, name string) (protocol.Request, config.Config, string, string, policy.MatchResult, bool) {
