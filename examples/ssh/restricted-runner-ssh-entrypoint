@@ -1,20 +1,17 @@
 #!/bin/sh
 set -eu
 
-# Sample SSH forced-command entrypoint.
-# RR_DRY_RUN is a sample wrapper convention that maps to `dispatch --dry-run`.
-
 : "${RR_CONFIG_PATH:=/etc/restricted-runner/config.yaml}"
 : "${RR_CALLER:=github-actions-homecloud}"
 : "${RR_TARGET:=server}"
-: "${RR_DRY_RUN:=0}"
+: "${RR_PREFLIGHT:=0}"
 
 if [ -n "${SSH_ORIGINAL_COMMAND:-}" ]; then
   echo '{"ok":false,"stage":"ssh_entrypoint","error":"SSH_ORIGINAL_COMMAND is not allowed"}'
   exit 1
 fi
 
-if [ "$RR_DRY_RUN" = "1" ]; then
+if [ "$RR_PREFLIGHT" = "1" ]; then
   exec /usr/local/bin/restricted-runner dispatch \
     --dry-run \
     --config "$RR_CONFIG_PATH" \

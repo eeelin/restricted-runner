@@ -100,3 +100,6 @@ Current release automation builds:
 - `docker/runner/Dockerfile`
 - `scripts/runner/rr-exec`
 - `scripts/runner/README.md`
+- `scripts/install-ssh-entrypoint.sh`
+- `scripts/uninstall-ssh-entrypoint.sh`
+- `examples/ssh/restricted-runner-ssh-entrypoint`

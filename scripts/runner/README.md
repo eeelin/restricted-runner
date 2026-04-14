@@ -12,7 +12,7 @@ This directory contains caller-side helper scripts intended for use inside a Git
 It builds a structured request and sends it over SSH stdin to a remote host running `restricted-runner` behind a forced-command entrypoint.
 
 `--target` means the logical policy target, not a path.
-Use `--dry-run` when you want remote preflight without real execution and your remote SSH entrypoint is wired to convert that into `dispatch --dry-run`.
+Use `--preflight` when you want remote dispatch preflight without real execution.
 
 ## Example
 

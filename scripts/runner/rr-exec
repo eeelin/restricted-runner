@@ -8,7 +8,7 @@ usage: rr-exec \
   --caller <caller-id> \
   --target <logical-target> \
   --script <relative-script> \
-  [--dry-run] \
+  [--preflight] \
   [--arg <value> ...] \
   [--env KEY=VALUE ...] \
   [--stdin-file <path>] \
@@ -18,8 +18,8 @@ usage: rr-exec \
 
 The command sends a JSON request over SSH stdin to a host configured with
 restricted-runner forced-command mode. `--target` is the logical policy target,
-not a filesystem path. Use --dry-run to request remote preflight without real
-execution when the remote SSH entrypoint is wired to honor `RR_DRY_RUN=1`.
+not a filesystem path. Use --preflight to request remote dispatch preflight
+without real execution.
 EOF
 }
 
@@ -30,7 +30,7 @@ SCRIPT=
 PORT=
 IDENTITY=
 STDIN_FILE=
-DRY_RUN=0
+PREFLIGHT=0
 ARGS_JSON='[]'
 ENV_JSON='{}'
 SSH_OPTIONS=()
@@ -66,8 +66,8 @@ while [ $# -gt 0 ]; do
       SCRIPT=${2:?missing value for --script}
       shift 2
       ;;
-    --dry-run)
-      DRY_RUN=1
+    --preflight)
+      PREFLIGHT=1
       shift
       ;;
     --arg)
@@ -144,8 +144,8 @@ for opt in "${SSH_OPTIONS[@]}"; do
 done
 SSH_CMD+=("$HOST")
 
-if [ "$DRY_RUN" = "1" ]; then
-  SSH_CMD+=("env" "RR_CALLER=$CALLER" "RR_TARGET=$TARGET" "RR_DRY_RUN=1")
+if [ "$PREFLIGHT" = "1" ]; then
+  SSH_CMD+=("env" "RR_CALLER=$CALLER" "RR_TARGET=$TARGET" "RR_PREFLIGHT=1")
 else
   SSH_CMD+=("env" "RR_CALLER=$CALLER" "RR_TARGET=$TARGET")
 fi
