@@ -10,12 +10,20 @@ Design documents live under `docs/`.
 - `docs/design.md`
 - `docs/protocol.md`
 - `docs/config.md`
+- `docs/ssh.md`
 
 ## Example files
 
 - `examples/config.yaml`
 - `examples/root/homecloud/site/validate`
 - `examples/root/homecloud/site/apply`
+- `examples/ssh/authorized_keys.example`
+- `examples/ssh/restricted-runner-ssh-entrypoint`
+
+## Demo install scripts
+
+- `scripts/install-demo.sh`
+- `scripts/uninstall-demo.sh`
 
 ## Example usage
 
