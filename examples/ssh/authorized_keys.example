@@ -1,0 +1,1 @@
+command="/usr/local/bin/restricted-runner-ssh-entrypoint",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAEXAMPLE runner-homecloud
