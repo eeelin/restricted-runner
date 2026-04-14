@@ -3,11 +3,12 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-usage: rr-dispatch-ssh \
+usage: rr-exec \
   --host <ssh-host> \
   --caller <caller-id> \
   --target <target> \
   --script <relative-script> \
+  [--dry-run] \
   [--arg <value> ...] \
   [--env KEY=VALUE ...] \
   [--stdin-file <path>] \
@@ -16,7 +17,8 @@ usage: rr-dispatch-ssh \
   [--ssh-option <option> ...]
 
 The command sends a JSON request over SSH stdin to a host configured with
-restricted-runner forced-command mode.
+restricted-runner forced-command mode. Use --dry-run to request remote preflight
+without real execution.
 EOF
 }
 
@@ -27,6 +29,7 @@ SCRIPT=
 PORT=
 IDENTITY=
 STDIN_FILE=
+DRY_RUN=0
 ARGS_JSON='[]'
 ENV_JSON='{}'
 SSH_OPTIONS=()
@@ -61,6 +64,10 @@ while [ $# -gt 0 ]; do
     --script)
       SCRIPT=${2:?missing value for --script}
       shift 2
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
       ;;
     --arg)
       ARGS_JSON=$(append_json_array "$ARGS_JSON" "${2:?missing value for --arg}")
@@ -119,14 +126,11 @@ REQUEST=$(jq -cn \
   --arg version v1 \
   --arg request_id "rr-$(date +%s)" \
   --arg script "$SCRIPT" \
-  --arg caller "$CALLER" \
-  --arg target "$TARGET" \
   --arg stdin "$STDIN_CONTENT" \
   --argjson argv "$ARGS_JSON" \
   --argjson env "$ENV_JSON" \
   '{version:$version, request_id:$request_id, script:$script, argv:$argv, env:$env} + (if $stdin != "" then {stdin:$stdin} else {} end)')
 
-MODE=${RR_MODE:-dispatch}
 SSH_CMD=(ssh -T)
 if [ -n "$PORT" ]; then
   SSH_CMD+=( -p "$PORT" )
@@ -137,7 +141,13 @@ fi
 for opt in "${SSH_OPTIONS[@]}"; do
   SSH_CMD+=( -o "$opt" )
 done
-SSH_CMD+=("$HOST" "env" "RR_MODE=$MODE")
+SSH_CMD+=("$HOST")
+
+if [ "$DRY_RUN" = "1" ]; then
+  SSH_CMD+=("env" "RR_CALLER=$CALLER" "RR_TARGET=$TARGET" "RR_DRY_RUN=1")
+else
+  SSH_CMD+=("env" "RR_CALLER=$CALLER" "RR_TARGET=$TARGET")
+fi
 
 RESPONSE=$(printf '%s' "$REQUEST" | "${SSH_CMD[@]}")
 printf '%s\n' "$RESPONSE"

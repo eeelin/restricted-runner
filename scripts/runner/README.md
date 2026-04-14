@@ -4,18 +4,19 @@ This directory contains caller-side helper scripts intended for use inside a Git
 
 ## Files
 
-- `rr-dispatch-ssh`
-- `rr-validate-ssh`
+- `rr-exec`
 
 ## Primary helper
 
-`rr-dispatch-ssh` is the main supported helper in the first version.
+`rr-exec` is the main supported helper in the first version.
 It builds a structured request and sends it over SSH stdin to a remote host running `restricted-runner` behind a forced-command entrypoint.
+
+Use `--dry-run` when you want remote preflight without real execution.
 
 ## Example
 
 ```bash
-rr-dispatch-ssh \
+rr-exec \
   --host deploy@my-host \
   --caller github-actions-homecloud \
   --target server \

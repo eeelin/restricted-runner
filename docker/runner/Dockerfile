@@ -11,9 +11,8 @@ RUN apt-get update \
         bash \
     && rm -rf /var/lib/apt/lists/*
 
-COPY scripts/runner/rr-dispatch-ssh /usr/local/bin/rr-dispatch-ssh
-COPY scripts/runner/rr-validate-ssh /usr/local/bin/rr-validate-ssh
+COPY scripts/runner/rr-exec /usr/local/bin/rr-exec
 
-RUN chmod 0755 /usr/local/bin/rr-dispatch-ssh /usr/local/bin/rr-validate-ssh
+RUN chmod 0755 /usr/local/bin/rr-exec
 
 USER runner

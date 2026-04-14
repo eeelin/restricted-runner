@@ -98,6 +98,5 @@ Current release automation builds:
 ## Runner image and SSH utilities
 
 - `docker/runner/Dockerfile`
-- `scripts/runner/rr-dispatch-ssh`
-- `scripts/runner/rr-validate-ssh`
+- `scripts/runner/rr-exec`
 - `scripts/runner/README.md`
