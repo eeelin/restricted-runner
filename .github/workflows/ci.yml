@@ -28,3 +28,12 @@ jobs:
 
       - name: Build
         run: go build ./cmd/restricted-runner
+
+  docker-runner-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build runner image
+        run: docker build -f docker/runner/Dockerfile -t restricted-runner-gha-runner:test .
