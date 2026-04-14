@@ -1,16 +1,26 @@
 #!/bin/sh
 set -eu
 
+: "${RESTRICTED_RUNNER_BIN:=/usr/local/bin/restricted-runner}"
 : "${RR_CONFIG_PATH:=/etc/restricted-runner/config.yaml}"
 : "${RR_CALLER:=github-actions-homecloud}"
 : "${RR_TARGET:=server}"
+: "${RR_PREFLIGHT:=0}"
 
 if [ -n "${SSH_ORIGINAL_COMMAND:-}" ]; then
   echo '{"ok":false,"stage":"ssh_entrypoint","error":"SSH_ORIGINAL_COMMAND is not allowed"}'
   exit 1
 fi
 
-exec /usr/local/bin/restricted-runner dispatch \
+if [ "$RR_PREFLIGHT" = "1" ]; then
+  exec "$RESTRICTED_RUNNER_BIN" dispatch \
+    --dry-run \
+    --config "$RR_CONFIG_PATH" \
+    --caller "$RR_CALLER" \
+    --target "$RR_TARGET"
+fi
+
+exec "$RESTRICTED_RUNNER_BIN" dispatch \
   --config "$RR_CONFIG_PATH" \
   --caller "$RR_CALLER" \
   --target "$RR_TARGET"
