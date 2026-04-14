@@ -16,6 +16,10 @@ Design documents live under `docs/`.
 
 - pull requests and pushes to `main` run `gofmt`, `go test ./...`, and `go build ./cmd/restricted-runner`
 - tags matching `v*` build a Linux x86-64 release binary and publish release artifacts
+
+## Additional documents
+
+- `docs/runner-image.md`
 - `docs/ssh.md`
 
 ## Example files
@@ -90,3 +94,10 @@ Current release automation builds:
 - `restricted-runner-linux-amd64`
 - `restricted-runner-linux-amd64.tar.gz`
 - `sha256sums.txt`
+
+## Runner image and SSH utilities
+
+- `docker/runner/Dockerfile`
+- `scripts/runner/rr-dispatch-ssh`
+- `scripts/runner/rr-validate-ssh`
+- `scripts/runner/README.md`

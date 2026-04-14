@@ -4,13 +4,23 @@ set -eu
 : "${RR_CONFIG_PATH:=/etc/restricted-runner/config.yaml}"
 : "${RR_CALLER:=github-actions-homecloud}"
 : "${RR_TARGET:=server}"
+: "${RR_MODE:=dispatch}"
 
 if [ -n "${SSH_ORIGINAL_COMMAND:-}" ]; then
   echo '{"ok":false,"stage":"ssh_entrypoint","error":"SSH_ORIGINAL_COMMAND is not allowed"}'
   exit 1
 fi
 
-exec /usr/local/bin/restricted-runner dispatch \
+case "$RR_MODE" in
+  dispatch|validate)
+    ;;
+  *)
+    echo '{"ok":false,"stage":"ssh_entrypoint","error":"invalid RR_MODE"}'
+    exit 1
+    ;;
+esac
+
+exec /usr/local/bin/restricted-runner "$RR_MODE" \
   --config "$RR_CONFIG_PATH" \
   --caller "$RR_CALLER" \
   --target "$RR_TARGET"

@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+usage: rr-dispatch-ssh \
+  --host <ssh-host> \
+  --caller <caller-id> \
+  --target <target> \
+  --script <relative-script> \
+  [--arg <value> ...] \
+  [--env KEY=VALUE ...] \
+  [--stdin-file <path>] \
+  [--port <port>] \
+  [--identity <path>] \
+  [--ssh-option <option> ...]
+
+The command sends a JSON request over SSH stdin to a host configured with
+restricted-runner forced-command mode.
+EOF
+}
+
+HOST=
+CALLER=
+TARGET=
+SCRIPT=
+PORT=
+IDENTITY=
+STDIN_FILE=
+ARGS_JSON='[]'
+ENV_JSON='{}'
+SSH_OPTIONS=()
+
+append_json_array() {
+  local current=$1
+  local value=$2
+  jq -cn --argjson current "$current" --arg value "$value" '$current + [$value]'
+}
+
+append_json_object() {
+  local current=$1
+  local key=$2
+  local value=$3
+  jq -cn --argjson current "$current" --arg key "$key" --arg value "$value" '$current + {($key): $value}'
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host)
+      HOST=${2:?missing value for --host}
+      shift 2
+      ;;
+    --caller)
+      CALLER=${2:?missing value for --caller}
+      shift 2
+      ;;
+    --target)
+      TARGET=${2:?missing value for --target}
+      shift 2
+      ;;
+    --script)
+      SCRIPT=${2:?missing value for --script}
+      shift 2
+      ;;
+    --arg)
+      ARGS_JSON=$(append_json_array "$ARGS_JSON" "${2:?missing value for --arg}")
+      shift 2
+      ;;
+    --env)
+      pair=${2:?missing value for --env}
+      key=${pair%%=*}
+      value=${pair#*=}
+      if [ -z "$key" ] || [ "$key" = "$pair" ]; then
+        echo "invalid --env value: $pair" >&2
+        exit 2
+      fi
+      ENV_JSON=$(append_json_object "$ENV_JSON" "$key" "$value")
+      shift 2
+      ;;
+    --stdin-file)
+      STDIN_FILE=${2:?missing value for --stdin-file}
+      shift 2
+      ;;
+    --port)
+      PORT=${2:?missing value for --port}
+      shift 2
+      ;;
+    --identity)
+      IDENTITY=${2:?missing value for --identity}
+      shift 2
+      ;;
+    --ssh-option)
+      SSH_OPTIONS+=("${2:?missing value for --ssh-option}")
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "unknown argument: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+if [ -z "$HOST" ] || [ -z "$CALLER" ] || [ -z "$TARGET" ] || [ -z "$SCRIPT" ]; then
+  usage >&2
+  exit 2
+fi
+
+STDIN_CONTENT=''
+if [ -n "$STDIN_FILE" ]; then
+  STDIN_CONTENT=$(cat "$STDIN_FILE")
+fi
+
+REQUEST=$(jq -cn \
+  --arg version v1 \
+  --arg request_id "rr-$(date +%s)" \
+  --arg script "$SCRIPT" \
+  --arg caller "$CALLER" \
+  --arg target "$TARGET" \
+  --arg stdin "$STDIN_CONTENT" \
+  --argjson argv "$ARGS_JSON" \
+  --argjson env "$ENV_JSON" \
+  '{version:$version, request_id:$request_id, script:$script, argv:$argv, env:$env} + (if $stdin != "" then {stdin:$stdin} else {} end)')
+
+MODE=${RR_MODE:-dispatch}
+SSH_CMD=(ssh -T)
+if [ -n "$PORT" ]; then
+  SSH_CMD+=( -p "$PORT" )
+fi
+if [ -n "$IDENTITY" ]; then
+  SSH_CMD+=( -i "$IDENTITY" )
+fi
+for opt in "${SSH_OPTIONS[@]}"; do
+  SSH_CMD+=( -o "$opt" )
+done
+SSH_CMD+=("$HOST" "env" "RR_MODE=$MODE")
+
+RESPONSE=$(printf '%s' "$REQUEST" | "${SSH_CMD[@]}")
+printf '%s\n' "$RESPONSE"
+
+OK=$(printf '%s' "$RESPONSE" | jq -r '.ok // false')
+if [ "$OK" != "true" ]; then
+  exit 1
+fi
