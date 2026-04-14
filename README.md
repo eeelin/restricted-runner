@@ -16,6 +16,7 @@ Design documents live under `docs/`.
 
 - pull requests and pushes to `main` run `gofmt`, `go test ./...`, and `go build ./cmd/restricted-runner`
 - tags matching `v*` build a Linux x86-64 release binary and publish release artifacts
+- tags matching `v*` also build and push the runner image to Docker Hub at `yuhuntero/restricted-runner-gha-runner`
 
 ## Additional documents
 
