@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+require_bin() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "missing required command: $1" >&2
+    exit 127
+  fi
+}
+
+require_bin jq
+require_bin ssh
+
 usage() {
   cat <<'EOF'
 usage: rr-exec \
@@ -132,7 +142,15 @@ REQUEST=$(jq -cn \
   --argjson env "$ENV_JSON" \
   '{version:$version, request_id:$request_id, script:$script, argv:$argv, env:$env} + (if $stdin != "" then {stdin:$stdin} else {} end)')
 
-SSH_CMD=(ssh -T)
+export RR_CALLER="$CALLER"
+export RR_TARGET="$TARGET"
+if [ "$PREFLIGHT" = "1" ]; then
+  export RR_PREFLIGHT=1
+else
+  unset RR_PREFLIGHT || true
+fi
+
+SSH_CMD=(ssh -T -o SendEnv=RR_CALLER -o SendEnv=RR_TARGET -o SendEnv=RR_PREFLIGHT)
 if [ -n "$PORT" ]; then
   SSH_CMD+=( -p "$PORT" )
 fi
@@ -143,12 +161,6 @@ for opt in "${SSH_OPTIONS[@]}"; do
   SSH_CMD+=( -o "$opt" )
 done
 SSH_CMD+=("$HOST")
-
-if [ "$PREFLIGHT" = "1" ]; then
-  SSH_CMD+=("env" "RR_CALLER=$CALLER" "RR_TARGET=$TARGET" "RR_PREFLIGHT=1")
-else
-  SSH_CMD+=("env" "RR_CALLER=$CALLER" "RR_TARGET=$TARGET")
-fi
 
 RESPONSE=$(printf '%s' "$REQUEST" | "${SSH_CMD[@]}")
 printf '%s\n' "$RESPONSE"

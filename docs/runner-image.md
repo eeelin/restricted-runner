@@ -62,16 +62,21 @@ This keeps GitHub workflow steps simple and consistent.
 
 ## 5. Remote Preflight Model
 
-The recommended model is a single SSH entrypoint with an injected `RR_PREFLIGHT=1` flag when preflight is desired.
+The recommended model is a single SSH entrypoint with `RR_CALLER`, `RR_TARGET`, and optional `RR_PREFLIGHT=1` passed through SSH environment forwarding.
 
 This is part of the runner-side SSH integration contract for this repository.
-The SSH entrypoint maps that environment variable to `restricted-runner dispatch --dry-run` on the remote host.
+The SSH entrypoint maps `RR_PREFLIGHT=1` to `restricted-runner dispatch --dry-run` on the remote host.
+The SSH server should allow this with:
+
+```text
+AcceptEnv RR_CALLER RR_TARGET RR_PREFLIGHT
+```
 
 That keeps the SSH boundary simple:
 
 - one entrypoint
 - one helper command
-- one remote command shape
+- no SSH_ORIGINAL_COMMAND dependency
 - two execution modes inside the same dispatch path
 
 ## 6. Example Workflow Usage
@@ -112,6 +117,14 @@ It does not mean a path, directory, or hostname.
 
 ## 8. SSH Entrypoint Support
 
+The host-side SSH configuration should preserve the forwarded environment variables needed by the entrypoint.
+That means `sshd_config` should allow:
+
+```text
+AcceptEnv RR_CALLER RR_TARGET RR_PREFLIGHT
+```
+
+
 The repository now includes a host-side SSH entrypoint and install helpers:
 
 - `examples/ssh/restricted-runner-ssh-entrypoint`
@@ -119,6 +132,7 @@ The repository now includes a host-side SSH entrypoint and install helpers:
 - `scripts/uninstall-ssh-entrypoint.sh`
 
 These are intended to support the runner-side `rr-exec` contract directly.
+The entrypoint defaults to `/usr/local/bin/restricted-runner` and may be overridden with `RESTRICTED_RUNNER_BIN` when needed for local testing or non-standard installation layouts.
 
 ## 9. Security Notes
 
@@ -129,6 +143,6 @@ These are intended to support the runner-side `rr-exec` contract directly.
 
 ## 10. Recommended Next Steps
 
-- tighten exactly how caller and target are injected on the SSH boundary
+- consider moving caller and target trust fully to host-side key mapping when deployment constraints require stricter provenance
 - add runner image build automation
 - add container publishing workflow later if the image becomes part of the release contract

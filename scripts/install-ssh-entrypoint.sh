@@ -13,7 +13,11 @@ cat <<EOF
 installed:
 - $BIN_DIR/restricted-runner-ssh-entrypoint
 
+required sshd_config support:
+- AcceptEnv RR_CALLER RR_TARGET RR_PREFLIGHT
+
 expected runtime env:
+- RESTRICTED_RUNNER_BIN=/usr/local/bin/restricted-runner (optional override)
 - RR_CONFIG_PATH=${CONFIG_PATH}
 - RR_CALLER=<caller-id>
 - RR_TARGET=<logical-target>

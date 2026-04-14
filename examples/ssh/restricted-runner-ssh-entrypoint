@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 
+: "${RESTRICTED_RUNNER_BIN:=/usr/local/bin/restricted-runner}"
 : "${RR_CONFIG_PATH:=/etc/restricted-runner/config.yaml}"
 : "${RR_CALLER:=github-actions-homecloud}"
 : "${RR_TARGET:=server}"
@@ -12,14 +13,14 @@ if [ -n "${SSH_ORIGINAL_COMMAND:-}" ]; then
 fi
 
 if [ "$RR_PREFLIGHT" = "1" ]; then
-  exec /usr/local/bin/restricted-runner dispatch \
+  exec "$RESTRICTED_RUNNER_BIN" dispatch \
     --dry-run \
     --config "$RR_CONFIG_PATH" \
     --caller "$RR_CALLER" \
     --target "$RR_TARGET"
 fi
 
-exec /usr/local/bin/restricted-runner dispatch \
+exec "$RESTRICTED_RUNNER_BIN" dispatch \
   --config "$RR_CONFIG_PATH" \
   --caller "$RR_CALLER" \
   --target "$RR_TARGET"
