@@ -13,8 +13,8 @@ import (
 func TestResolveReturnsPathUnderRoot(t *testing.T) {
 	root := t.TempDir()
 	result, err := Resolve(ResolveInput{
-		Config: config.Config{RootPath: root},
-		Match:  policy.MatchResult{},
+		Config:  config.Config{RootPath: root},
+		Match:   policy.MatchResult{},
 		Request: protocol.Request{Script: "homecloud/site/apply"},
 	})
 	if err != nil {
@@ -29,7 +29,7 @@ func TestResolveReturnsPathUnderRoot(t *testing.T) {
 func TestResolveRejectsEscapeFromRoot(t *testing.T) {
 	root := t.TempDir()
 	_, err := Resolve(ResolveInput{
-		Config: config.Config{RootPath: root},
+		Config:  config.Config{RootPath: root},
 		Request: protocol.Request{Script: "../escape"},
 	})
 	if err != ErrResolvedPathEscapesRoot {
@@ -40,7 +40,7 @@ func TestResolveRejectsEscapeFromRoot(t *testing.T) {
 func TestPreflightRejectsMissingExecutable(t *testing.T) {
 	root := t.TempDir()
 	_, err := Preflight(ResolveInput{
-		Config: config.Config{RootPath: root},
+		Config:  config.Config{RootPath: root},
 		Request: protocol.Request{Script: "homecloud/site/apply"},
 	})
 	if err == nil || err.Error() == "" {
@@ -59,7 +59,7 @@ func TestPreflightRejectsNonExecutableFile(t *testing.T) {
 	}
 
 	_, err := Preflight(ResolveInput{
-		Config: config.Config{RootPath: root},
+		Config:  config.Config{RootPath: root},
 		Request: protocol.Request{Script: "homecloud/site/apply"},
 	})
 	if err == nil || err.Error() == "" {
@@ -78,7 +78,7 @@ func TestPreflightAcceptsExecutableFile(t *testing.T) {
 	}
 
 	result, err := Preflight(ResolveInput{
-		Config: config.Config{RootPath: root},
+		Config:  config.Config{RootPath: root},
 		Request: protocol.Request{Script: "homecloud/site/apply"},
 	})
 	if err != nil {

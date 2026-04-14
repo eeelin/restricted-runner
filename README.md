@@ -12,6 +12,12 @@ Design documents live under `docs/`.
 - `docs/config.md`
 - `docs/ssh.md`
 
+## CI and release
+
+- pull requests and pushes to `main` run `gofmt`, `go test ./...`, and `go build ./cmd/restricted-runner`
+- tags matching `v*` build a Linux x86-64 release binary and publish release artifacts
+- `docs/ssh.md`
+
 ## Example files
 
 - `examples/config.yaml`
@@ -76,3 +82,11 @@ cat <<'EOF' | restricted-runner dispatch --dry-run \
 }
 EOF
 ```
+
+## Release output
+
+Current release automation builds:
+
+- `restricted-runner-linux-amd64`
+- `restricted-runner-linux-amd64.tar.gz`
+- `sha256sums.txt`

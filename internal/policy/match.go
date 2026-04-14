@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	ErrScriptNotAllowed = errors.New("script not allowed")
-	ErrCallerNotAllowed = errors.New("caller not allowed")
-	ErrTargetNotAllowed = errors.New("target not allowed")
-	ErrStdinNotAllowed  = errors.New("stdin not allowed")
-	ErrEnvNotAllowed    = errors.New("environment key not allowed")
+	ErrScriptNotAllowed   = errors.New("script not allowed")
+	ErrCallerNotAllowed   = errors.New("caller not allowed")
+	ErrTargetNotAllowed   = errors.New("target not allowed")
+	ErrStdinNotAllowed    = errors.New("stdin not allowed")
+	ErrEnvNotAllowed      = errors.New("environment key not allowed")
 	ErrMissingRequiredEnv = errors.New("missing required environment key")
 )
 
