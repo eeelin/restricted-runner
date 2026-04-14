@@ -20,8 +20,8 @@ var (
 )
 
 type ResolveInput struct {
-	Config config.Config
-	Match  policy.MatchResult
+	Config  config.Config
+	Match   policy.MatchResult
 	Request protocol.Request
 }
 
