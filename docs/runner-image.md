@@ -51,13 +51,18 @@ This helper:
 - expects the remote host to be configured with SSH forced-command mode
 - prints the structured JSON response
 - exits non-zero if `.ok != true`
-- supports `--dry-run` for remote preflight through the same entrypoint
+- supports `--dry-run` for remote preflight when the remote SSH entrypoint is wired to honor that convention
+
+Its `--target` flag refers to the logical policy target used by `restricted-runner`, not a filesystem path or destination directory.
 
 This keeps GitHub workflow steps simple and consistent.
 
 ## 5. Remote Dry-run Model
 
-The current recommended model is a single SSH entrypoint with an injected `RR_DRY_RUN=1` flag when preflight is desired.
+The current recommended sample model is a single SSH entrypoint with an injected `RR_DRY_RUN=1` flag when preflight is desired.
+
+This is a sample entrypoint convention, not a separate `restricted-runner` protocol field.
+The SSH wrapper is responsible for mapping that environment variable to `dispatch --dry-run` on the remote host.
 
 That keeps the SSH boundary simple:
 
@@ -95,14 +100,21 @@ rr-exec \
   --env ACTOR=github-actions
 ```
 
-## 7. Security Notes
+## 7. Naming Notes
+
+### target
+
+In this project, `target` means a logical target name used for policy matching, for example `server` or `claw`.
+It does not mean a path, directory, or hostname.
+
+## 8. Security Notes
 
 - the runner image should use a dedicated SSH key for the remote restricted account
 - that key should be limited through forced-command mode on the target host
 - workflows should avoid embedding secrets directly into ad hoc shell strings
 - the remote host remains the policy enforcement point
 
-## 8. Recommended Next Steps
+## 9. Recommended Next Steps
 
 - tighten exactly how caller and target are injected on the SSH boundary
 - add runner image build automation

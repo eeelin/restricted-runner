@@ -11,7 +11,8 @@ This directory contains caller-side helper scripts intended for use inside a Git
 `rr-exec` is the main supported helper in the first version.
 It builds a structured request and sends it over SSH stdin to a remote host running `restricted-runner` behind a forced-command entrypoint.
 
-Use `--dry-run` when you want remote preflight without real execution.
+`--target` means the logical policy target, not a path.
+Use `--dry-run` when you want remote preflight without real execution and your remote SSH entrypoint is wired to convert that into `dispatch --dry-run`.
 
 ## Example
 

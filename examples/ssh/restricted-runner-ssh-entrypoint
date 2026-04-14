@@ -1,6 +1,9 @@
 #!/bin/sh
 set -eu
 
+# Sample SSH forced-command entrypoint.
+# RR_DRY_RUN is a sample wrapper convention that maps to `dispatch --dry-run`.
+
 : "${RR_CONFIG_PATH:=/etc/restricted-runner/config.yaml}"
 : "${RR_CALLER:=github-actions-homecloud}"
 : "${RR_TARGET:=server}"

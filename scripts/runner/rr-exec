@@ -6,7 +6,7 @@ usage() {
 usage: rr-exec \
   --host <ssh-host> \
   --caller <caller-id> \
-  --target <target> \
+  --target <logical-target> \
   --script <relative-script> \
   [--dry-run] \
   [--arg <value> ...] \
@@ -17,8 +17,9 @@ usage: rr-exec \
   [--ssh-option <option> ...]
 
 The command sends a JSON request over SSH stdin to a host configured with
-restricted-runner forced-command mode. Use --dry-run to request remote preflight
-without real execution.
+restricted-runner forced-command mode. `--target` is the logical policy target,
+not a filesystem path. Use --dry-run to request remote preflight without real
+execution when the remote SSH entrypoint is wired to honor `RR_DRY_RUN=1`.
 EOF
 }
 
