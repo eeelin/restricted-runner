@@ -1,0 +1,28 @@
+services:
+  runner:
+    image: yuhuntero/restricted-runner-gha-runner:v0.0.2
+    container_name: restricted-runner-gha-runner
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      RUNNER_NAME: ${RUNNER_NAME:-restricted-runner-gha}
+      RUNNER_WORKDIR: /home/runner/_work
+    volumes:
+      - runner-work:/home/runner/_work
+      - ./ssh:/home/runner/.ssh:ro
+    command: >-
+      bash -lc '
+        ./config.sh
+        --url "$GITHUB_RUNNER_URL"
+        --token "$GITHUB_RUNNER_TOKEN"
+        --name "$RUNNER_NAME"
+        --work "$RUNNER_WORKDIR"
+        --labels "${RUNNER_LABELS:-restricted-runner,ssh}"
+        --unattended
+        --replace
+        && exec ./run.sh
+      '
+
+volumes:
+  runner-work:

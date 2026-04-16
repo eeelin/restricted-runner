@@ -30,6 +30,9 @@ Design documents live under `docs/`.
 - `examples/root/homecloud/site/apply`
 - `examples/ssh/authorized_keys.example`
 - `examples/ssh/restricted-runner-ssh-entrypoint`
+- `examples/docker-compose/docker-compose.yml`
+- `examples/docker-compose/.env.example`
+- `examples/docker-compose/README.md`
 
 ## Demo install scripts
 
