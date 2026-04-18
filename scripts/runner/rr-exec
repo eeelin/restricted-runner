@@ -162,10 +162,26 @@ for opt in "${SSH_OPTIONS[@]}"; do
 done
 SSH_CMD+=("$HOST")
 
-RESPONSE=$(printf '%s' "$REQUEST" | "${SSH_CMD[@]}")
+set +e
+RESPONSE=$(printf '%s' "$REQUEST" | "${SSH_CMD[@]}" 2>&1)
+SSH_STATUS=$?
+set -e
+
 printf '%s\n' "$RESPONSE"
 
-OK=$(printf '%s' "$RESPONSE" | jq -r '.ok // false')
-if [ "$OK" != "true" ]; then
-  exit 1
+if printf '%s' "$RESPONSE" | jq -e . >/dev/null 2>&1; then
+  OK=$(printf '%s' "$RESPONSE" | jq -r '.ok // false')
+  if [ "$OK" != "true" ]; then
+    exit 1
+  fi
+  if [ "$SSH_STATUS" -ne 0 ]; then
+    exit "$SSH_STATUS"
+  fi
+  exit 0
 fi
+
+if [ "$SSH_STATUS" -ne 0 ]; then
+  exit "$SSH_STATUS"
+fi
+
+exit 1
