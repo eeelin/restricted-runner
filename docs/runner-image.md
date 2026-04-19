@@ -7,6 +7,7 @@ Draft
 ## 1. Purpose
 
 This document describes the first built-in runner image for use with GitHub Actions.
+For the full end-to-end deployment procedure, see `docs/deployment.md`.
 
 The purpose of the image is to provide a convenient execution environment that includes:
 
@@ -144,5 +145,3 @@ The entrypoint defaults to `/usr/local/bin/restricted-runner` and may be overrid
 ## 10. Recommended Next Steps
 
 - consider moving caller and target trust fully to host-side key mapping when deployment constraints require stricter provenance
-- add runner image build automation
-- add container publishing workflow later if the image becomes part of the release contract

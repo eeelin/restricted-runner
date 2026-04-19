@@ -11,6 +11,8 @@ Design documents live under `docs/`.
 - `docs/protocol.md`
 - `docs/config.md`
 - `docs/ssh.md`
+- `docs/runner-image.md`
+- `docs/deployment.md`
 
 ## CI and release
 
@@ -18,10 +20,17 @@ Design documents live under `docs/`.
 - tags matching `v*` build a Linux x86-64 release binary and publish release artifacts
 - tags matching `v*` also build and push the runner image to Docker Hub at `yuhuntero/restricted-runner-gha-runner`
 
-## Additional documents
+## Start here for deployment
+
+If you want to actually deploy this stack, start with:
+
+- `docs/deployment.md`
+
+Then use these as supporting references:
 
 - `docs/runner-image.md`
 - `docs/ssh.md`
+- `examples/docker-compose/README.md`
 
 ## Example files
 
