@@ -7,6 +7,7 @@ Draft
 ## 1. Purpose
 
 This document describes how `restricted-runner` should be integrated with SSH forced-command mode.
+For the full deployment walk-through, see `docs/deployment.md`.
 
 The goal is to use SSH as a narrow transport and identity boundary, while keeping request validation, policy checks, path resolution, and execution logic inside `restricted-runner` itself.
 
@@ -157,9 +158,13 @@ The SSH account used for forced-command mode should be dedicated and restricted 
 
 The scripts under `root_path` should be operator-controlled and reviewed.
 
-## 13. Recommended Next Steps
+## 13. Current Supporting Files
 
-- add a sample wrapper under `examples/ssh/`
-- add an `authorized_keys` example
-- add install and uninstall scripts for a local demonstration deployment
-- later, teach the Go binary to consume trusted caller and target metadata from environment variables instead of requiring them only as CLI flags
+This repository already includes:
+
+- `examples/ssh/restricted-runner-ssh-entrypoint`
+- `examples/ssh/authorized_keys.example`
+- `scripts/install-ssh-entrypoint.sh`
+- `scripts/uninstall-ssh-entrypoint.sh`
+
+Use `docs/deployment.md` as the main operator-facing guide.

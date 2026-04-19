@@ -2,6 +2,10 @@
 
 This example shows how to run the published GitHub Actions runner image with Docker Compose.
 
+For the full end-to-end deployment flow, also read:
+
+- `docs/deployment.md`
+
 ## Files
 
 - `docker-compose.yml`
@@ -46,3 +50,4 @@ This example shows how to run the published GitHub Actions runner image with Doc
 - The SSH directory is mounted read-only into `/home/runner/.ssh`.
 - The named volume `runner-work` stores the runner work directory.
 - `rr-exec` is available inside the container at `/usr/local/bin/rr-exec`.
+- The target host still needs the SSH forced-command setup described in `docs/deployment.md`.
