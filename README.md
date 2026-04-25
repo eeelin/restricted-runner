@@ -15,8 +15,8 @@ Design documents live under `docs/`.
 ## CI and release
 
 - pull requests and pushes to `main` run `gofmt`, `go test ./...`, and `go build ./cmd/restricted-runner`
-- tags matching `v*` build a Linux x86-64 release binary and publish release artifacts
-- tags matching `v*` also build and push the runner image to Docker Hub at `yuhuntero/restricted-runner-gha-runner`
+- tags matching `v*` build Linux release binaries for `amd64` and `arm64` and publish release artifacts
+- tags matching `v*` also build and push a multi-arch runner image to Docker Hub at `yuhuntero/restricted-runner-gha-runner`
 
 ## Additional documents
 
@@ -97,6 +97,8 @@ Current release automation builds:
 
 - `restricted-runner-linux-amd64`
 - `restricted-runner-linux-amd64.tar.gz`
+- `restricted-runner-linux-arm64`
+- `restricted-runner-linux-arm64.tar.gz`
 - `sha256sums.txt`
 
 ## Runner image and SSH utilities

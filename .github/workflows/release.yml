@@ -24,16 +24,24 @@ jobs:
       - name: Run tests
         run: go test ./...
 
-      - name: Build linux amd64 binary
-        env:
-          CGO_ENABLED: 0
-          GOOS: linux
-          GOARCH: amd64
+      - name: Build linux release binaries
         run: |
+          set -eu
           mkdir -p dist
-          go build -trimpath -ldflags="-s -w -X main.version=${GITHUB_REF_NAME}" -o dist/restricted-runner-linux-amd64 ./cmd/restricted-runner
-          tar -C dist -czf dist/restricted-runner-linux-amd64.tar.gz restricted-runner-linux-amd64
-          sha256sum dist/restricted-runner-linux-amd64 dist/restricted-runner-linux-amd64.tar.gz > dist/sha256sums.txt
+
+          for arch in amd64 arm64; do
+            GOOS=linux GOARCH="$arch" CGO_ENABLED=0 \
+              go build -trimpath -ldflags="-s -w -X main.version=${GITHUB_REF_NAME}" \
+              -o "dist/restricted-runner-linux-$arch" ./cmd/restricted-runner
+            tar -C dist -czf "dist/restricted-runner-linux-$arch.tar.gz" "restricted-runner-linux-$arch"
+          done
+
+          sha256sum \
+            dist/restricted-runner-linux-amd64 \
+            dist/restricted-runner-linux-amd64.tar.gz \
+            dist/restricted-runner-linux-arm64 \
+            dist/restricted-runner-linux-arm64.tar.gz \
+            > dist/sha256sums.txt
 
       - name: Upload release artifacts
         uses: softprops/action-gh-release@v2
@@ -42,4 +50,6 @@ jobs:
           files: |
             dist/restricted-runner-linux-amd64
             dist/restricted-runner-linux-amd64.tar.gz
+            dist/restricted-runner-linux-arm64
+            dist/restricted-runner-linux-arm64.tar.gz
             dist/sha256sums.txt
