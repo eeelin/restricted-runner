@@ -5,6 +5,8 @@ This directory contains caller-side helper scripts intended for use inside a Git
 ## Files
 
 - `rr-exec`
+- `start-runner`
+- `start-runner_test.sh`
 
 ## Primary helper
 
@@ -13,6 +15,13 @@ It builds a structured request and sends it over SSH stdin to a remote host runn
 
 `--target` means the logical policy target, not a path.
 Use `--preflight` when you want remote dispatch preflight without real execution.
+
+## Runner startup
+
+`start-runner` registers the GitHub Actions runner when no saved state exists,
+copies the generated identity files into `RUNNER_STATE_DIR`, and starts the
+runner. On later launches it restores those files and skips registration, so an
+expired one-time registration token does not break container restarts.
 
 ## Example
 
@@ -25,4 +34,12 @@ rr-exec \
   --arg sites/homes/ruyi/hass \
   --env TARGET=server \
   --env ACTOR=github-actions
+```
+
+## Tests
+
+Run the persistent registration lifecycle regression test with:
+
+```bash
+bash scripts/runner/start-runner_test.sh
 ```

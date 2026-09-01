@@ -23,12 +23,15 @@ The first version includes:
 
 - `docker/runner/Dockerfile`
 - `scripts/runner/rr-exec`
+- `scripts/runner/start-runner`
 - `scripts/install-ssh-entrypoint.sh`
 - `scripts/uninstall-ssh-entrypoint.sh`
 - `examples/ssh/restricted-runner-ssh-entrypoint`
 
-The first version does not try to bundle a fully opinionated runner registration flow.
-It focuses on giving workflows a consistent container image plus the SSH entrypoint wiring needed for remote execution and preflight.
+The image includes a lightweight runner registration lifecycle that persists the
+registered identity across container replacement. It also gives workflows a
+consistent container image plus the SSH entrypoint wiring needed for remote
+execution and preflight.
 
 ## 3. Included Tools
 
@@ -42,6 +45,18 @@ The image currently installs:
 It also installs this helper utility:
 
 - `/usr/local/bin/rr-exec`
+- `/usr/local/bin/start-runner`
+
+### Persistent registration state
+
+`start-runner` registers the runner only when its state directory is empty.
+After registration it stores `.runner`, `.credentials`, and
+`.credentials_rsaparams` in `/home/runner/.runner-state`. Mount that directory
+as a persistent volume so container restarts reuse the registered identity
+instead of reusing the short-lived GitHub registration token.
+
+The state directory deliberately excludes the runner binaries. This allows a new
+image to provide an updated runner while retaining the existing registration.
 
 ## 4. Current Utility Contract
 
