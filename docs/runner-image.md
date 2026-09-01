@@ -23,12 +23,15 @@ The first version includes:
 
 - `docker/runner/Dockerfile`
 - `scripts/runner/rr-exec`
+- `scripts/runner/start-runner`
 - `scripts/install-ssh-entrypoint.sh`
 - `scripts/uninstall-ssh-entrypoint.sh`
 - `examples/ssh/restricted-runner-ssh-entrypoint`
 
-The first version does not try to bundle a fully opinionated runner registration flow.
-It focuses on giving workflows a consistent container image plus the SSH entrypoint wiring needed for remote execution and preflight.
+The image includes a lightweight runner registration lifecycle that persists the
+registered identity across container replacement. It also gives workflows a
+consistent container image plus the SSH entrypoint wiring needed for remote
+execution and preflight.
 
 ## 3. Included Tools
 

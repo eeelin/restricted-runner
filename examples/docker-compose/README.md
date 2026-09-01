@@ -40,6 +40,12 @@ This example builds and runs the GitHub Actions runner image with Docker Compose
    docker compose up -d
    ```
 
+   Later container restarts reuse the saved registration:
+
+   ```bash
+   docker compose restart
+   ```
+
 ## Notes
 
 - This example builds `docker/runner/Dockerfile` as
@@ -52,4 +58,7 @@ This example builds and runs the GitHub Actions runner image with Docker Compose
 - `GITHUB_RUNNER_TOKEN` is only used when `runner-state` is empty. GitHub
   registration tokens expire after one hour, so generate a new token if the
   state volume is removed and the runner must be registered again.
+- Avoid `docker compose down -v` during routine updates because it removes the
+  `runner-state` volume. If that volume is removed, delete the stale runner in
+  GitHub when needed, generate a new registration token, and start again.
 - `rr-exec` is available inside the container at `/usr/local/bin/rr-exec`.
