@@ -2,6 +2,10 @@
 
 This example builds and runs the GitHub Actions runner image with Docker Compose.
 
+For the full end-to-end deployment flow, also read:
+
+- `docs/deployment.md`
+
 ## Files
 
 - `docker-compose.yml`
@@ -62,3 +66,4 @@ This example builds and runs the GitHub Actions runner image with Docker Compose
   `runner-state` volume. If that volume is removed, delete the stale runner in
   GitHub when needed, generate a new registration token, and start again.
 - `rr-exec` is available inside the container at `/usr/local/bin/rr-exec`.
+- The target host still needs the SSH forced-command setup described in `docs/deployment.md`.
