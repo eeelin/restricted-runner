@@ -1,6 +1,6 @@
 # docker-compose example
 
-This example shows how to run the published GitHub Actions runner image with Docker Compose.
+This example builds and runs the GitHub Actions runner image with Docker Compose.
 
 ## Files
 
@@ -42,7 +42,14 @@ This example shows how to run the published GitHub Actions runner image with Doc
 
 ## Notes
 
-- This example uses the published image `yuhuntero/restricted-runner-gha-runner:v0.0.2`.
+- This example builds `docker/runner/Dockerfile` as
+  `restricted-runner-gha-runner:local`, ensuring the Compose command and image
+  stay in sync.
 - The SSH directory is mounted read-only into `/home/runner/.ssh`.
 - The named volume `runner-work` stores the runner work directory.
+- The named volume `runner-state` stores the registered runner identity and
+  credentials. Keep this volume across container restarts and image upgrades.
+- `GITHUB_RUNNER_TOKEN` is only used when `runner-state` is empty. GitHub
+  registration tokens expire after one hour, so generate a new token if the
+  state volume is removed and the runner must be registered again.
 - `rr-exec` is available inside the container at `/usr/local/bin/rr-exec`.

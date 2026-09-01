@@ -12,7 +12,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY scripts/runner/rr-exec /usr/local/bin/rr-exec
+COPY scripts/runner/start-runner /usr/local/bin/start-runner
 
-RUN chmod 0755 /usr/local/bin/rr-exec
+RUN chmod 0755 /usr/local/bin/rr-exec /usr/local/bin/start-runner \
+    && mkdir -p /home/runner/.runner-state \
+    && chown runner:runner /home/runner/.runner-state
 
 USER runner

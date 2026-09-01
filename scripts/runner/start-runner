@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+runner_home="${RUNNER_HOME:-/home/runner}"
+state_dir="${RUNNER_STATE_DIR:-${runner_home}/.runner-state}"
+state_files=(.runner .credentials .credentials_rsaparams)
+
+cd "${runner_home}"
+mkdir -p "${state_dir}"
+
+state_complete=true
+for state_file in "${state_files[@]}"; do
+    if [[ ! -s "${state_dir}/${state_file}" ]]; then
+        state_complete=false
+        break
+    fi
+done
+
+if [[ "${state_complete}" == true ]]; then
+    for state_file in "${state_files[@]}"; do
+        install -m 0600 "${state_dir}/${state_file}" "${runner_home}/${state_file}"
+    done
+else
+    : "${GITHUB_RUNNER_URL:?GITHUB_RUNNER_URL is required for initial registration}"
+    : "${GITHUB_RUNNER_TOKEN:?GITHUB_RUNNER_TOKEN is required for initial registration}"
+
+    ./config.sh \
+        --url "${GITHUB_RUNNER_URL}" \
+        --token "${GITHUB_RUNNER_TOKEN}" \
+        --name "${RUNNER_NAME:-restricted-runner-gha}" \
+        --work "${RUNNER_WORKDIR:-_work}" \
+        --labels "${RUNNER_LABELS:-restricted-runner,ssh}" \
+        --unattended \
+        --replace
+
+    for state_file in "${state_files[@]}"; do
+        if [[ ! -s "${runner_home}/${state_file}" ]]; then
+            printf 'Runner registration did not create %s\n' "${state_file}" >&2
+            exit 1
+        fi
+        install -m 0600 "${runner_home}/${state_file}" "${state_dir}/${state_file}"
+    done
+fi
+
+exec ./run.sh

@@ -5,6 +5,8 @@ This directory contains caller-side helper scripts intended for use inside a Git
 ## Files
 
 - `rr-exec`
+- `start-runner`
+- `start-runner_test.sh`
 
 ## Primary helper
 
@@ -25,4 +27,12 @@ rr-exec \
   --arg sites/homes/ruyi/hass \
   --env TARGET=server \
   --env ACTOR=github-actions
+```
+
+## Tests
+
+Run the persistent registration lifecycle regression test with:
+
+```bash
+bash scripts/runner/start-runner_test.sh
 ```

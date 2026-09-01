@@ -35,5 +35,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Test runner startup lifecycle
+        run: bash scripts/runner/start-runner_test.sh
+
       - name: Build runner image
         run: docker build -f docker/runner/Dockerfile -t restricted-runner-gha-runner:test .

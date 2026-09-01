@@ -42,6 +42,18 @@ The image currently installs:
 It also installs this helper utility:
 
 - `/usr/local/bin/rr-exec`
+- `/usr/local/bin/start-runner`
+
+### Persistent registration state
+
+`start-runner` registers the runner only when its state directory is empty.
+After registration it stores `.runner`, `.credentials`, and
+`.credentials_rsaparams` in `/home/runner/.runner-state`. Mount that directory
+as a persistent volume so container restarts reuse the registered identity
+instead of reusing the short-lived GitHub registration token.
+
+The state directory deliberately excludes the runner binaries. This allows a new
+image to provide an updated runner while retaining the existing registration.
 
 ## 4. Current Utility Contract
 
